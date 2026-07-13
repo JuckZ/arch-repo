@@ -1,0 +1,96 @@
+name: Build and publish package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to build
+        required: true
+        type: choice
+        options:
+          - codex-desktop
+          - codex-desktop-bin
+        default: codex-desktop
+      publish:
+        description: Publish package and refresh pacman database
+        required: true
+        type: boolean
+        default: true
+      max_build_threads:
+        description: Build and compression threads
+        required: true
+        default: '4'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-arch-repo-x86_64
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    environment: release
+    steps:
+      - name: Install build and publishing tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm \
+            git nodejs npm python 7zip p7zip curl unzip zstd rust \
+            github-cli namcap gnupg sudo
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create unprivileged builder
+        run: |
+          useradd --create-home builder
+          printf 'builder ALL=(ALL:ALL) NOPASSWD: /usr/bin/pacman\n' > /etc/sudoers.d/builder
+          chmod 440 /etc/sudoers.d/builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Import repository signing key
+        env:
+          REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+        run: |
+          install -d -m 700 -o builder -g builder /home/builder/.gnupg
+          printf '%s' "$REPO_GPG_PRIVATE_KEY" | runuser -u builder -- gpg --batch --import
+
+      - name: Build package
+        env:
+          MAX_BUILD_THREADS: ${{ inputs.max_build_threads }}
+        run: |
+          runuser -u builder -- env \
+            MAX_BUILD_THREADS="$MAX_BUILD_THREADS" \
+            bash "$GITHUB_WORKSPACE/scripts/build-package.sh" "${{ inputs.package }}"
+
+      - name: Inspect package
+        run: |
+          package_file="$(find "packages/${{ inputs.package }}" -maxdepth 1 \
+            -name '*.pkg.tar.zst' -type f | head -n 1)"
+          test -n "$package_file"
+          pacman -Qip "$package_file"
+          namcap "$package_file" || true
+          printf 'PACKAGE_FILE=%s\n' "$package_file" >> "$GITHUB_ENV"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.package }}-x86_64
+          path: ${{ env.PACKAGE_FILE }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish package and repository database
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_GPG_KEY_ID: ${{ secrets.REPO_GPG_KEY_ID }}
+        run: |
+          runuser -u builder -- env \
+            GH_TOKEN="$GH_TOKEN" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" \
+            REPO_GPG_KEY_ID="$REPO_GPG_KEY_ID" \
+            bash "$GITHUB_WORKSPACE/scripts/publish-repo.sh" "$PACKAGE_FILE"

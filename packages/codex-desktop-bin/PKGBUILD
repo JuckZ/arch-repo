@@ -1,0 +1,62 @@
+# Maintainer: JuckZ <juckz@foxmail.com>
+
+pkgname=codex-desktop-bin
+pkgver=2026.07.13.a8dbcb95
+pkgrel=1
+pkgdesc="Unofficial prebuilt Codex Desktop for Linux"
+arch=('x86_64')
+url="https://github.com/JuckZ/arch-repo"
+license=('MIT' 'custom')
+install="${pkgname}.install"
+depends=(
+  'python'
+  'p7zip'
+  'polkit'
+  'curl'
+  'unzip'
+  'alsa-lib'
+  'at-spi2-core'
+  'atk'
+  'cairo'
+  'dbus'
+  'glib2'
+  'gtk3'
+  'libcups'
+  'libdrm'
+  'libx11'
+  'libxcb'
+  'libxcomposite'
+  'libxdamage'
+  'libxext'
+  'libxfixes'
+  'libxkbcommon'
+  'libxrandr'
+  'mesa'
+  'nspr'
+  'nss'
+  'pango'
+)
+optdepends=(
+  'nodejs: optional override for the bundled managed Node.js runtime'
+  'npm: optional override for Codex CLI install/update flows'
+  'zenity: GTK dialog fallback when the Codex CLI is missing'
+  'kdialog: KDE dialog fallback when the Codex CLI is missing'
+)
+provides=("codex-desktop=${pkgver}")
+conflicts=('codex-desktop' 'openai-codex-desktop')
+options=(!debug !strip)
+
+_repository_tag="repository-${CARCH}"
+_source_package="codex-desktop-${pkgver}-${pkgrel}-${CARCH}.pkg.tar.zst"
+_source_url="${CODEX_DESKTOP_PACKAGE_URL:-https://github.com/JuckZ/arch-repo/releases/download/${_repository_tag}/${_source_package}}"
+source=("${_source_package}::${_source_url}")
+sha256sums=("${CODEX_DESKTOP_PACKAGE_SHA256:-SKIP}")
+
+package() {
+  bsdtar -xf "${srcdir}/${_source_package}" -C "${pkgdir}"
+  rm -f "${pkgdir}/.BUILDINFO" "${pkgdir}/.INSTALL" \
+    "${pkgdir}/.MTREE" "${pkgdir}/.PKGINFO"
+
+  install -Dm644 "${startdir}/../../DISCLAIMER.md" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/DISCLAIMER.md"
+}

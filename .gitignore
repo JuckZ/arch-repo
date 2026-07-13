@@ -1,0 +1,8 @@
+*.pkg.tar.*
+*.sig
+*.sha256
+*.log
+pkg/
+src/
+repo-work/
+

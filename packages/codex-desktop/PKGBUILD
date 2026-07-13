@@ -1,0 +1,93 @@
+# Maintainer: JuckZ <juckz@foxmail.com>
+
+pkgname=codex-desktop
+pkgver=2026.07.13.a8dbcb95
+pkgrel=1
+pkgdesc="Unofficial Codex Desktop for Linux, built from the official macOS DMG"
+arch=('x86_64')
+url="https://github.com/JuckZ/arch-repo"
+license=('MIT' 'custom')
+install="${pkgname}.install"
+depends=(
+  'python'
+  'p7zip'
+  'polkit'
+  'curl'
+  'unzip'
+  'alsa-lib'
+  'at-spi2-core'
+  'atk'
+  'cairo'
+  'dbus'
+  'glib2'
+  'gtk3'
+  'libcups'
+  'libdrm'
+  'libx11'
+  'libxcb'
+  'libxcomposite'
+  'libxdamage'
+  'libxext'
+  'libxfixes'
+  'libxkbcommon'
+  'libxrandr'
+  'mesa'
+  'nspr'
+  'nss'
+  'pango'
+)
+makedepends=(
+  '7zip'
+  'git'
+  'nodejs'
+  'npm'
+  'rust'
+  'zstd'
+)
+optdepends=(
+  'nodejs: optional override for the bundled managed Node.js runtime'
+  'npm: optional override for Codex CLI install/update flows'
+  'zenity: GTK dialog fallback when the Codex CLI is missing'
+  'kdialog: KDE dialog fallback when the Codex CLI is missing'
+)
+conflicts=('codex-desktop-bin' 'openai-codex-desktop')
+options=(!debug !strip)
+
+_wrapper_commit='a8dbcb954f6108070b5633afef69792bf12f5507'
+source=(
+  "codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=${_wrapper_commit}"
+  'Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/Codex.dmg'
+)
+sha256sums=('SKIP' 'SKIP')
+
+build() {
+  cd "${srcdir}/codex-desktop-linux"
+  MAX_BUILD_THREADS="${MAX_BUILD_THREADS:-$(nproc)}" \
+    make build-app DMG="${srcdir}/Codex.dmg"
+  MAX_BUILD_THREADS="${MAX_BUILD_THREADS:-$(nproc)}" \
+    PACKAGE_NAME="${pkgname}" \
+    PACKAGE_DISPLAY_NAME='Codex Desktop' \
+    PACKAGE_COMMENT='Run Codex Desktop on Linux' \
+    PACKAGE_VERSION="${pkgver}" \
+    PACKAGE_WITH_UPDATER="${PACKAGE_WITH_UPDATER:-1}" \
+    make pacman
+}
+
+package() {
+  local package_file
+
+  package_file="$(find "${srcdir}/codex-desktop-linux/dist" -maxdepth 1 \
+    -type f -name "${pkgname}-[0-9]*.pkg.tar.*" | sort -V | tail -n 1)"
+
+  if [[ -z "${package_file}" || ! -f "${package_file}" ]]; then
+    printf 'Could not find generated package file\n' >&2
+    return 1
+  fi
+
+  bsdtar -xf "${package_file}" -C "${pkgdir}"
+  rm -f "${pkgdir}/.BUILDINFO" "${pkgdir}/.INSTALL" \
+    "${pkgdir}/.MTREE" "${pkgdir}/.PKGINFO"
+
+  install -Dm644 "${startdir}/../../DISCLAIMER.md" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/DISCLAIMER.md"
+}
