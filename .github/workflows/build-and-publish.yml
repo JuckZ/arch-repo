@@ -47,7 +47,7 @@ jobs:
             github-cli namcap gnupg sudo
 
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Create unprivileged builder
         run: |
@@ -85,7 +85,7 @@ jobs:
           printf 'PACKAGE_FILE=%s\n' "$package_file" >> "$GITHUB_ENV"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.package }}-x86_64
           path: ${{ env.PACKAGE_FILE }}
