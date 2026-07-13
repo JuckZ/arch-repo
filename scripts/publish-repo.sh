@@ -48,6 +48,8 @@ sha256sum "$work_dir/$(basename "$package_file")" > \
 rm -f "$work_dir/${repo_db}.db"* "$work_dir/${repo_db}.files"*
 repo-add --sign --key "$key_id" "$work_dir/${repo_db}.db.tar.gz" \
   "$work_dir"/*.pkg.tar.zst
+rm -f "$work_dir/${repo_db}.db" "$work_dir/${repo_db}.files" \
+  "$work_dir/${repo_db}.db.sig" "$work_dir/${repo_db}.files.sig"
 cp "$work_dir/${repo_db}.db.tar.gz" "$work_dir/${repo_db}.db"
 cp "$work_dir/${repo_db}.files.tar.gz" "$work_dir/${repo_db}.files"
 cp "$work_dir/${repo_db}.db.tar.gz.sig" "$work_dir/${repo_db}.db.sig"
