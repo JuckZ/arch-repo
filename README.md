@@ -67,7 +67,17 @@ the signing key first, then use the exact asset URL shown on the Release page:
 
 ```bash
 sudo pacman -U \
-  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst'
+  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-bin-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst'
+```
+
+The locally-built channel is also available as a versioned asset named
+`codex-desktop-<version>-x86_64.pkg.tar.zst`.
+
+If pacman reports `TLS connect error` on a proxied network while ordinary curl
+downloads work, add this under `[options]` in `/etc/pacman.conf`:
+
+```ini
+XferCommand = /usr/bin/curl -L --retry 5 --retry-all-errors -C - -f -o %o %u
 ```
 
 ## Build from a PKGBUILD
