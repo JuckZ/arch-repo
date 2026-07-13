@@ -20,6 +20,11 @@ on:
         description: Build and compression threads
         required: true
         default: '4'
+      package_with_updater:
+        description: Include the optional update manager
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -42,7 +47,7 @@ jobs:
             github-cli namcap gnupg sudo
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create unprivileged builder
         run: |
@@ -61,10 +66,12 @@ jobs:
       - name: Build package
         env:
           MAX_BUILD_THREADS: ${{ inputs.max_build_threads }}
+          PACKAGE_WITH_UPDATER: ${{ inputs.package_with_updater && '1' || '0' }}
         run: |
           runuser -u builder -- env \
             -u GITHUB_STEP_SUMMARY \
             MAX_BUILD_THREADS="$MAX_BUILD_THREADS" \
+            PACKAGE_WITH_UPDATER="$PACKAGE_WITH_UPDATER" \
             bash "$GITHUB_WORKSPACE/scripts/build-package.sh" "${{ inputs.package }}"
 
       - name: Inspect package

@@ -69,7 +69,7 @@ build() {
     PACKAGE_DISPLAY_NAME='Codex Desktop' \
     PACKAGE_COMMENT='Run Codex Desktop on Linux' \
     PACKAGE_VERSION="${pkgver}" \
-    PACKAGE_WITH_UPDATER="${PACKAGE_WITH_UPDATER:-1}" \
+    PACKAGE_WITH_UPDATER="${PACKAGE_WITH_UPDATER:-0}" \
     make pacman
 }
 

@@ -11,6 +11,12 @@ Initial packages:
 
 The packages conflict and cannot be installed together.
 
+The optional upstream update manager is disabled by default because its current
+Rust native dependencies do not link reliably in the Arch build container. The
+desktop application remains installable and Codex CLI updates are independent
+of this optional component. Maintainers can re-enable it from the workflow
+input after upstream compatibility is restored.
+
 ## Enable the repository
 
 Import and locally trust the repository signing key:
@@ -87,4 +93,3 @@ It builds as an unprivileged user, signs the package, updates the `juckz`
 database, and publishes everything to the fixed `repository-x86_64` Release.
 
 See [DISCLAIMER.md](DISCLAIMER.md) before redistributing third-party payloads.
-
