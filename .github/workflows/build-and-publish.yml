@@ -76,15 +76,15 @@ jobs:
 
       - name: Inspect package
         run: |
-          package_file="$(find "packages/${{ inputs.package }}" -maxdepth 1 \
-            -name '*.pkg.tar.zst' -type f | head -n 1)"
+          package_file="$(cd "packages/${{ inputs.package }}" && makepkg --packagelist | head -n 1)"
           test -n "$package_file"
+          test -f "$package_file"
           pacman -Qip "$package_file"
           namcap "$package_file" || true
           printf 'PACKAGE_FILE=%s\n' "$package_file" >> "$GITHUB_ENV"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.package }}-x86_64
           path: ${{ env.PACKAGE_FILE }}
