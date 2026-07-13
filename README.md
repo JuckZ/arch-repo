@@ -66,7 +66,8 @@ Versioned packages are available from the `repository-x86_64` Release. Import
 the signing key first, then use the exact asset URL shown on the Release page:
 
 ```bash
-sudo pacman -U 'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/PACKAGE_FILE.pkg.tar.zst'
+sudo pacman -U \
+  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst'
 ```
 
 ## Build from a PKGBUILD

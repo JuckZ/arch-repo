@@ -43,6 +43,6 @@ pkgbase = codex-desktop-bin
 	options = !debug
 	options = !strip
 	source = codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst::https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst
-	sha256sums = SKIP
+	sha256sums = c087932d4ea06cf1cf6aeb452910f7537da0a0c8d4abe2b94d5959639aac3c45
 
 pkgname = codex-desktop-bin
