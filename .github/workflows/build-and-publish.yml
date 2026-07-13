@@ -76,7 +76,8 @@ jobs:
 
       - name: Inspect package
         run: |
-          package_file="$(cd "packages/${{ inputs.package }}" && makepkg --packagelist | head -n 1)"
+          package_file="$(find "packages/${{ inputs.package }}" -maxdepth 1 -type f \
+            -name '${{ inputs.package }}-[0-9]*.pkg.tar.zst' | head -n 1)"
           test -n "$package_file"
           test -f "$package_file"
           pacman -Qip "$package_file"
