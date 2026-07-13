@@ -17,6 +17,11 @@ desktop application remains installable and Codex CLI updates are independent
 of this optional component. Maintainers can re-enable it from the workflow
 input after upstream compatibility is restored.
 
+The pinned upstream revision also reports a native linker failure for the Linux
+Computer Use backend in the Arch container. The desktop application and normal
+Codex/CLI integration are packaged, but Computer Use may be unavailable in this
+initial release until the upstream native-linking issue is resolved.
+
 ## Enable the repository
 
 Import and locally trust the repository signing key:
