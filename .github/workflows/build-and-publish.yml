@@ -63,6 +63,7 @@ jobs:
           MAX_BUILD_THREADS: ${{ inputs.max_build_threads }}
         run: |
           runuser -u builder -- env \
+            -u GITHUB_STEP_SUMMARY \
             MAX_BUILD_THREADS="$MAX_BUILD_THREADS" \
             bash "$GITHUB_WORKSPACE/scripts/build-package.sh" "${{ inputs.package }}"
 
