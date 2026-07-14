@@ -3,6 +3,7 @@
 *.sha256
 *.log
 Codex.dmg
+packages/*/codex-desktop-linux/
 pkg/
 src/
 repo-work/

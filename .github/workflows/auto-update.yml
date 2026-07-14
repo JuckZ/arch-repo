@@ -188,6 +188,7 @@ jobs:
           rm -f packages/codex-desktop/Codex.dmg
           rm -f packages/codex-desktop/*.pkg.tar.zst
           rm -f packages/codex-desktop-bin/*.pkg.tar.zst
+          rm -rf packages/codex-desktop/codex-desktop-linux
           chown -R builder:builder packages
           runuser -u builder -- bash -c \
             'cd packages/codex-desktop && makepkg --printsrcinfo > .SRCINFO'
@@ -196,7 +197,12 @@ jobs:
           chown builder:builder upstream/codex-dmg.json
           runuser -u builder -- git config user.name 'juckz-arch-repo-bot'
           runuser -u builder -- git config user.email 'actions@github.com'
-          runuser -u builder -- git add packages upstream/codex-dmg.json
+          runuser -u builder -- git add \
+            packages/codex-desktop/PKGBUILD \
+            packages/codex-desktop/.SRCINFO \
+            packages/codex-desktop-bin/PKGBUILD \
+            packages/codex-desktop-bin/.SRCINFO \
+            upstream/codex-dmg.json
           runuser -u builder -- git commit -m \
             "chore(packages): publish Codex Desktop ${{ steps.metadata.outputs.package_version }}"
           runuser -u builder -- git pull --rebase origin main
