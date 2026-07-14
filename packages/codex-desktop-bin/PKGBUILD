@@ -48,9 +48,15 @@ options=(!debug !strip)
 
 _repository_tag="repository-${CARCH}"
 _source_package="codex-desktop-${pkgver}-${pkgrel}-${CARCH}.pkg.tar.zst"
-_source_url="${CODEX_DESKTOP_PACKAGE_URL:-https://github.com/JuckZ/arch-repo/releases/download/${_repository_tag}/${_source_package}}"
-source=("${_source_package}::${_source_url}")
-sha256sums=("${CODEX_DESKTOP_PACKAGE_SHA256:-c087932d4ea06cf1cf6aeb452910f7537da0a0c8d4abe2b94d5959639aac3c45}")
+_source_sha256='c087932d4ea06cf1cf6aeb452910f7537da0a0c8d4abe2b94d5959639aac3c45'
+
+if [[ "${CODEX_DESKTOP_PACKAGE_LOCAL:-0}" == '1' ]]; then
+  source=("${_source_package}")
+else
+  _source_url="${CODEX_DESKTOP_PACKAGE_URL:-https://github.com/JuckZ/arch-repo/releases/download/${_repository_tag}/${_source_package}}"
+  source=("${_source_package}::${_source_url}")
+fi
+sha256sums=("${CODEX_DESKTOP_PACKAGE_SHA256:-${_source_sha256}}")
 
 package() {
   bsdtar -xf "${srcdir}/${_source_package}" -C "${pkgdir}"

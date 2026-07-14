@@ -2,7 +2,7 @@
 *.sig
 *.sha256
 *.log
+Codex.dmg
 pkg/
 src/
 repo-work/
-

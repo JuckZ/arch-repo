@@ -1,0 +1,212 @@
+name: Check and publish new Codex DMG
+
+on:
+  schedule:
+    # GitHub cron uses UTC. 22:00 UTC is 06:00 the next day in Asia/Shanghai.
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even when the DMG payload hash is unchanged
+        required: true
+        type: boolean
+        default: false
+      max_build_threads:
+        description: Build and compression threads
+        required: true
+        default: '4'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-update-codex-dmg-x86_64
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    container: archlinux:base-devel
+    environment: release
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Install checking, build, and publishing tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm \
+            git nodejs npm python 7zip p7zip curl unzip zstd rust \
+            github-cli namcap gnupg sudo jq aria2
+
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create unprivileged builder
+        run: |
+          useradd --create-home builder
+          printf 'builder ALL=(ALL:ALL) NOPASSWD: /usr/bin/pacman\n' > /etc/sudoers.d/builder
+          chmod 440 /etc/sudoers.d/builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Import repository signing key
+        env:
+          REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+        run: |
+          install -d -m 700 -o builder -g builder /home/builder/.gnupg
+          printf '%s' "$REPO_GPG_PRIVATE_KEY" | runuser -u builder -- gpg --batch --import
+
+      - name: Check upstream DMG
+        id: check
+        env:
+          MANUAL_FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
+        run: |
+          work_dir="$RUNNER_TEMP/codex-auto-update"
+          mkdir -p "$work_dir"
+          bash scripts/check-dmg-update.sh \
+            upstream/codex-dmg.json "$work_dir" "$MANUAL_FORCE"
+
+      - name: Record changed remote fingerprint without rebuilding
+        if: steps.check.outputs.payload_changed != 'true' && steps.check.outputs.fingerprint_changed == 'true'
+        run: |
+          cp "${{ steps.check.outputs.candidate_file }}" upstream/codex-dmg.json
+          chown builder:builder upstream/codex-dmg.json
+          runuser -u builder -- git config user.name 'juckz-arch-repo-bot'
+          runuser -u builder -- git config user.email 'actions@github.com'
+          runuser -u builder -- git add upstream/codex-dmg.json
+          runuser -u builder -- git commit -m 'chore(upstream): refresh Codex DMG fingerprint'
+          runuser -u builder -- git pull --rebase origin main
+          runuser -u builder -- git push origin HEAD:main
+
+      - name: Prepare new package metadata
+        if: steps.check.outputs.payload_changed == 'true'
+        id: metadata
+        run: |
+          wrapper_commit="$(git ls-remote https://github.com/ilysenko/codex-desktop-linux.git refs/heads/main | awk '{print $1}')"
+          test -n "$wrapper_commit"
+          package_version="$(python3 scripts/update-package-metadata.py \
+            "$GITHUB_WORKSPACE" "${{ steps.check.outputs.candidate_file }}" "$wrapper_commit")"
+          cp "${{ steps.check.outputs.dmg_path }}" packages/codex-desktop/Codex.dmg
+          chown builder:builder packages/codex-desktop/Codex.dmg
+          printf 'wrapper_commit=%s\n' "$wrapper_commit" >> "$GITHUB_OUTPUT"
+          printf 'package_version=%s\n' "$package_version" >> "$GITHUB_OUTPUT"
+
+      - name: Build codex-desktop
+        if: steps.check.outputs.payload_changed == 'true'
+        env:
+          MAX_BUILD_THREADS: ${{ inputs.max_build_threads || '4' }}
+          DMG_SHA256: ${{ steps.check.outputs.dmg_sha256 }}
+        run: |
+          runuser -u builder -- env \
+            -u GITHUB_STEP_SUMMARY \
+            CODEX_DMG_LOCAL=1 \
+            CODEX_DMG_SHA256="$DMG_SHA256" \
+            MAX_BUILD_THREADS="$MAX_BUILD_THREADS" \
+            PACKAGE_WITH_UPDATER=0 \
+            bash "$GITHUB_WORKSPACE/scripts/build-package.sh" codex-desktop
+
+      - name: Publish codex-desktop
+        if: steps.check.outputs.payload_changed == 'true'
+        id: source_package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_GPG_KEY_ID: ${{ secrets.REPO_GPG_KEY_ID }}
+        run: |
+          package_file="$(find packages/codex-desktop -maxdepth 1 -type f \
+            -name 'codex-desktop-[0-9]*.pkg.tar.zst' | head -n 1)"
+          test -f "$package_file"
+          pacman -Qip "$package_file"
+          namcap "$package_file" || true
+          package_sha256="$(sha256sum "$package_file" | awk '{print $1}')"
+          runuser -u builder -- env \
+            GH_TOKEN="$GH_TOKEN" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" \
+            REPO_GPG_KEY_ID="$REPO_GPG_KEY_ID" \
+            bash "$GITHUB_WORKSPACE/scripts/publish-repo.sh" "$package_file"
+          printf 'file=%s\n' "$(realpath "$package_file")" >> "$GITHUB_OUTPUT"
+          printf 'sha256=%s\n' "$package_sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare and build codex-desktop-bin
+        if: steps.check.outputs.payload_changed == 'true'
+        env:
+          MAX_BUILD_THREADS: ${{ inputs.max_build_threads || '4' }}
+        run: |
+          python3 scripts/update-package-metadata.py \
+            "$GITHUB_WORKSPACE" "${{ steps.check.outputs.candidate_file }}" \
+            "${{ steps.metadata.outputs.wrapper_commit }}" \
+            "${{ steps.source_package.outputs.sha256 }}"
+          source_name="$(basename "${{ steps.source_package.outputs.file }}")"
+          cp "${{ steps.source_package.outputs.file }}" \
+            "packages/codex-desktop-bin/$source_name"
+          chown builder:builder "packages/codex-desktop-bin/$source_name"
+          runuser -u builder -- env \
+            CODEX_DESKTOP_PACKAGE_LOCAL=1 \
+            CODEX_DESKTOP_PACKAGE_SHA256="${{ steps.source_package.outputs.sha256 }}" \
+            MAX_BUILD_THREADS="$MAX_BUILD_THREADS" \
+            bash "$GITHUB_WORKSPACE/scripts/build-package.sh" codex-desktop-bin
+
+      - name: Publish codex-desktop-bin
+        if: steps.check.outputs.payload_changed == 'true'
+        id: binary_package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_GPG_KEY_ID: ${{ secrets.REPO_GPG_KEY_ID }}
+        run: |
+          package_file="$(find packages/codex-desktop-bin -maxdepth 1 -type f \
+            -name 'codex-desktop-bin-[0-9]*.pkg.tar.zst' | head -n 1)"
+          test -f "$package_file"
+          pacman -Qip "$package_file"
+          namcap "$package_file" || true
+          package_sha256="$(sha256sum "$package_file" | awk '{print $1}')"
+          runuser -u builder -- env \
+            GH_TOKEN="$GH_TOKEN" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" \
+            REPO_GPG_KEY_ID="$REPO_GPG_KEY_ID" \
+            bash "$GITHUB_WORKSPACE/scripts/publish-repo.sh" "$package_file"
+          printf 'sha256=%s\n' "$package_sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Commit published metadata
+        if: steps.check.outputs.payload_changed == 'true'
+        env:
+          BINARY_SHA256: ${{ steps.binary_package.outputs.sha256 }}
+        run: |
+          python3 - "${{ steps.check.outputs.candidate_file }}" "$BINARY_SHA256" <<'PY'
+          from datetime import datetime, timezone
+          import json
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          data = json.loads(path.read_text())
+          data["binary_package_sha256"] = sys.argv[2]
+          data["published_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+          path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+          PY
+          cp "${{ steps.check.outputs.candidate_file }}" upstream/codex-dmg.json
+          rm -f packages/codex-desktop/Codex.dmg
+          rm -f packages/codex-desktop/*.pkg.tar.zst
+          rm -f packages/codex-desktop-bin/*.pkg.tar.zst
+          chown -R builder:builder packages
+          runuser -u builder -- bash -c \
+            'cd packages/codex-desktop && makepkg --printsrcinfo > .SRCINFO'
+          runuser -u builder -- bash -c \
+            'cd packages/codex-desktop-bin && makepkg --printsrcinfo > .SRCINFO'
+          chown builder:builder upstream/codex-dmg.json
+          runuser -u builder -- git config user.name 'juckz-arch-repo-bot'
+          runuser -u builder -- git config user.email 'actions@github.com'
+          runuser -u builder -- git add packages upstream/codex-dmg.json
+          runuser -u builder -- git commit -m \
+            "chore(packages): publish Codex Desktop ${{ steps.metadata.outputs.package_version }}"
+          runuser -u builder -- git pull --rebase origin main
+          runuser -u builder -- git push origin HEAD:main
+
+      - name: Summarize result
+        if: always()
+        run: |
+          if [ "${{ steps.check.outputs.payload_changed }}" = 'true' ]; then
+            printf 'Published Codex Desktop %s\n' '${{ steps.metadata.outputs.package_version }}'
+          else
+            printf 'No new Codex DMG payload was found.\n'
+          fi

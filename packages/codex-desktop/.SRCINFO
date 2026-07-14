@@ -48,8 +48,8 @@ pkgbase = codex-desktop
 	options = !debug
 	options = !strip
 	source = codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=a8dbcb954f6108070b5633afef69792bf12f5507
-	source = Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/Codex.dmg
+	source = Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg
 	sha256sums = SKIP
-	sha256sums = SKIP
+	sha256sums = c243c94f8de6a51f5530ffe1f8d0c1588733d890ac692e34aaca06d95ba637ca
 
 pkgname = codex-desktop

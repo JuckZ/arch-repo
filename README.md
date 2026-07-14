@@ -1,5 +1,7 @@
 # JuckZ Arch Repository
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Signed custom pacman repository and inspectable PKGBUILD collection for Arch
 Linux and compatible distributions.
 
@@ -17,10 +19,10 @@ desktop application remains installable and Codex CLI updates are independent
 of this optional component. Maintainers can re-enable it from the workflow
 input after upstream compatibility is restored.
 
-The pinned upstream revision also reports a native linker failure for the Linux
+Some upstream revisions may report a native linker failure for the Linux
 Computer Use backend in the Arch container. The desktop application and normal
-Codex/CLI integration are packaged, but Computer Use may be unavailable in this
-initial release until the upstream native-linking issue is resolved.
+Codex/CLI integration are still packaged, but Computer Use can be unavailable
+until the upstream native-linking issue is resolved.
 
 ## Enable the repository
 
@@ -67,12 +69,12 @@ yay -S juckz/codex-desktop-bin
 
 ## Direct package installation
 
-Versioned packages are available from the `repository-x86_64` Release. Import
-the signing key first, then use the exact asset URL shown on the Release page:
+The rolling `repository-x86_64` Release provides stable direct-download names.
+Import the signing key first, then install the latest prebuilt package:
 
 ```bash
 sudo pacman -U \
-  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-bin-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst'
+  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-bin-x86_64.pkg.tar.zst'
 ```
 
 The locally-built channel is also available as a versioned asset named
@@ -103,6 +105,24 @@ makepkg -si
 Never run `makepkg` with `sudo`.
 
 ## Maintainer publishing
+
+### Daily automatic update
+
+The `Check and publish new Codex DMG` workflow runs every day at **06:00
+Asia/Shanghai** (`22:00 UTC`). It:
+
+1. checks the upstream DMG ETag, modification time, and content length;
+2. downloads the DMG only when its remote fingerprint changes;
+3. verifies the complete SHA256 and reads the application version from
+   `Info.plist`;
+4. builds and signs `codex-desktop` and `codex-desktop-bin`;
+5. refreshes the `juckz` pacman database and stable direct-download aliases;
+6. commits the new pinned versions and checksums back to `main`.
+
+The workflow can also be started manually. Enable `force` only when the same
+DMG payload needs to be rebuilt deliberately.
+
+### Manual publishing
 
 The `Build and publish package` workflow has publishing enabled by default.
 It builds as an unprivileged user, signs the package, updates the `juckz`

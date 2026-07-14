@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "url": "https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg",
+  "remote": {
+    "etag": "",
+    "last_modified": "",
+    "content_length": 615738501
+  },
+  "sha256": "c243c94f8de6a51f5530ffe1f8d0c1588733d890ac692e34aaca06d95ba637ca",
+  "app_version": "26.707.62119",
+  "wrapper_commit": "a8dbcb954f6108070b5633afef69792bf12f5507",
+  "package_version": "2026.07.13.a8dbcb95",
+  "published_at": "2026-07-13T14:50:30Z"
+}

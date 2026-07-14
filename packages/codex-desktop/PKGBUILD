@@ -54,11 +54,20 @@ conflicts=('codex-desktop-bin' 'openai-codex-desktop')
 options=(!debug !strip)
 
 _wrapper_commit='a8dbcb954f6108070b5633afef69792bf12f5507'
-source=(
-  "codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=${_wrapper_commit}"
-  'Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/Codex.dmg'
-)
-sha256sums=('SKIP' 'SKIP')
+_dmg_sha256='c243c94f8de6a51f5530ffe1f8d0c1588733d890ac692e34aaca06d95ba637ca'
+
+if [[ "${CODEX_DMG_LOCAL:-0}" == '1' ]]; then
+  source=(
+    "codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=${_wrapper_commit}"
+    'Codex.dmg'
+  )
+else
+  source=(
+    "codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=${_wrapper_commit}"
+    'Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg'
+  )
+fi
+sha256sums=('SKIP' "${CODEX_DMG_SHA256:-${_dmg_sha256}}")
 
 build() {
   cd "${srcdir}/codex-desktop-linux"

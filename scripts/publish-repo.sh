@@ -21,14 +21,31 @@ if ! gh release view "$release_tag" --repo "$repo_name" >/dev/null 2>&1; then
     --notes "Rolling signed pacman repository assets for ${repo_arch}."
 fi
 
-gh release download "$release_tag" --repo "$repo_name" \
-  --pattern '*.pkg.tar.zst' --dir "$work_dir" 2>/dev/null || true
-gh release download "$release_tag" --repo "$repo_name" \
-  --pattern '*.pkg.tar.zst.sig' --dir "$work_dir" 2>/dev/null || true
+if gh release download "$release_tag" --repo "$repo_name" \
+    --pattern "${repo_db}.db" --dir "$work_dir" 2>/dev/null; then
+  while IFS= read -r existing_package; do
+    [[ -n "$existing_package" ]] || continue
+    gh release download "$release_tag" --repo "$repo_name" \
+      --pattern "$existing_package" --dir "$work_dir"
+    gh release download "$release_tag" --repo "$repo_name" \
+      --pattern "$existing_package.sig" --dir "$work_dir" 2>/dev/null || true
+  done < <(
+    while IFS= read -r desc_entry; do
+      bsdtar -xOf "$work_dir/${repo_db}.db" "$desc_entry" \
+        | awk '$0 == "%FILENAME%" { getline; print; exit }'
+    done < <(bsdtar -tf "$work_dir/${repo_db}.db" | awk '/\/desc$/')
+  )
+  rm -f "$work_dir/${repo_db}.db"
+fi
 
 for old_file in "$work_dir"/*.pkg.tar.zst; do
   [[ -e "$old_file" ]] || continue
   old_name="$(pacman -Qp "$old_file" | awk '{print $1}')"
+  stable_name="${old_name}-${repo_arch}.pkg.tar.zst"
+  if [[ "$(basename "$old_file")" == "$stable_name" ]]; then
+    rm -f "$old_file" "$old_file.sig" "$old_file.sha256"
+    continue
+  fi
   if [[ "$old_name" == "$new_name" ]]; then
     gh release delete-asset "$release_tag" "$(basename "$old_file")" \
       --repo "$repo_name" --yes || true
@@ -42,8 +59,10 @@ done
 
 cp "$package_file" "$work_dir/"
 gpg --batch --yes --local-user "$key_id" --detach-sign "$work_dir/$(basename "$package_file")"
-sha256sum "$work_dir/$(basename "$package_file")" > \
-  "$work_dir/$(basename "$package_file").sha256"
+(
+  cd "$work_dir"
+  sha256sum "$(basename "$package_file")" > "$(basename "$package_file").sha256"
+)
 
 rm -f "$work_dir/${repo_db}.db"* "$work_dir/${repo_db}.files"*
 repo-add --sign --key "$key_id" "$work_dir/${repo_db}.db.tar.gz" \
@@ -55,10 +74,21 @@ cp "$work_dir/${repo_db}.files.tar.gz" "$work_dir/${repo_db}.files"
 cp "$work_dir/${repo_db}.db.tar.gz.sig" "$work_dir/${repo_db}.db.sig"
 cp "$work_dir/${repo_db}.files.tar.gz.sig" "$work_dir/${repo_db}.files.sig"
 
+stable_package="$work_dir/${new_name}-${repo_arch}.pkg.tar.zst"
+cp "$work_dir/$(basename "$package_file")" "$stable_package"
+cp "$work_dir/$(basename "$package_file").sig" "$stable_package.sig"
+(
+  cd "$work_dir"
+  sha256sum "$(basename "$stable_package")" > "$(basename "$stable_package").sha256"
+)
+
 gh release upload "$release_tag" --repo "$repo_name" --clobber \
   "$work_dir/$(basename "$package_file")" \
   "$work_dir/$(basename "$package_file").sig" \
-  "$work_dir/$(basename "$package_file").sha256"
+  "$work_dir/$(basename "$package_file").sha256" \
+  "$stable_package" \
+  "$stable_package.sig" \
+  "$stable_package.sha256"
 
 gh release upload "$release_tag" --repo "$repo_name" --clobber \
   "$work_dir/${repo_db}.db" \
