@@ -5,6 +5,17 @@
 Signed custom pacman repository and inspectable PKGBUILD collection for Arch
 Linux and compatible distributions.
 
+## Recommended project
+
+This repository is based on and refers to
+[ilysenko/codex-desktop-linux](https://github.com/ilysenko/codex-desktop-linux).
+We recommend that most users use that project directly.
+
+This repository is maintained primarily for personal use and only adapts the
+packaging and distribution workflow for Arch Linux. The referenced project is
+the more appropriate starting point if you want the general Linux conversion
+workflow, broader distribution support, or upstream implementation details.
+
 Initial packages:
 
 - `codex-desktop`: builds locally from the official Codex DMG and a pinned

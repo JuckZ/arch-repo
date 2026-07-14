@@ -4,6 +4,13 @@
 
 这是一个适用于 Arch Linux 及其兼容发行版的签名 pacman 软件仓库，同时提供可审查的 PKGBUILD。
 
+## 推荐项目
+
+本仓库参考并基于
+[ilysenko/codex-desktop-linux](https://github.com/ilysenko/codex-desktop-linux)，推荐大多数用户优先使用该项目。
+
+本仓库主要用于个人使用，仅针对 Arch Linux 的软件包构建和分发流程进行了适配。如果你需要通用的 Linux 转换流程、更广泛的发行版支持，或者希望了解上游实现细节，建议直接从该参考项目开始。
+
 当前包含：
 
 - `codex-desktop`：从官方 Codex DMG 和固定版本的 `codex-desktop-linux` 在本地构建。
