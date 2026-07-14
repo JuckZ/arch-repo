@@ -1,6 +1,6 @@
 pkgbase = codex-desktop-bin
 	pkgdesc = Unofficial prebuilt Codex Desktop for Linux
-	pkgver = 2026.07.13.a8dbcb95
+	pkgver = 26.707.71524.d361b8a54.gbb6791d5
 	pkgrel = 1
 	url = https://github.com/JuckZ/arch-repo
 	install = codex-desktop-bin.install
@@ -37,12 +37,12 @@ pkgbase = codex-desktop-bin
 	optdepends = npm: optional override for Codex CLI install/update flows
 	optdepends = zenity: GTK dialog fallback when the Codex CLI is missing
 	optdepends = kdialog: KDE dialog fallback when the Codex CLI is missing
-	provides = codex-desktop=2026.07.13.a8dbcb95
+	provides = codex-desktop=26.707.71524.d361b8a54.gbb6791d5
 	conflicts = codex-desktop
 	conflicts = openai-codex-desktop
 	options = !debug
 	options = !strip
-	source = codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst::https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-2026.07.13.a8dbcb95-1-x86_64.pkg.tar.zst
-	sha256sums = c087932d4ea06cf1cf6aeb452910f7537da0a0c8d4abe2b94d5959639aac3c45
+	source = codex-desktop-26.707.71524.d361b8a54.gbb6791d5-1-x86_64.pkg.tar.zst::https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-26.707.71524.d361b8a54.gbb6791d5-1-x86_64.pkg.tar.zst
+	sha256sums = c541fde15515fe17997fbfa6c28517485faa8fec0ff0b06980c426a1bdf05cdf
 
 pkgname = codex-desktop-bin

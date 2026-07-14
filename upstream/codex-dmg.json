@@ -2,13 +2,16 @@
   "schema_version": 1,
   "url": "https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg",
   "remote": {
-    "etag": "",
-    "last_modified": "",
-    "content_length": 615738501
+    "etag": "0x8DEE1449BD784D5",
+    "last_modified": "Tue, 14 Jul 2026 01:09:52 GMT",
+    "content_length": 615733087
   },
-  "sha256": "c243c94f8de6a51f5530ffe1f8d0c1588733d890ac692e34aaca06d95ba637ca",
-  "app_version": "26.707.62119",
-  "wrapper_commit": "a8dbcb954f6108070b5633afef69792bf12f5507",
-  "package_version": "2026.07.13.a8dbcb95",
-  "published_at": "2026-07-13T14:50:30Z"
+  "sha256": "361b8a54aa4dcbd9aaa9697784526b838569a811d789ea437e925f9855e05fb8",
+  "app_version": "26.707.71524",
+  "wrapper_commit": "bb6791d59f136dd382a8f1f031f8e225b58991e0",
+  "package_version": "26.707.71524.d361b8a54.gbb6791d5",
+  "published_at": "2026-07-14T02:21:24.896406Z",
+  "checked_at": "2026-07-14T02:11:36.450668Z",
+  "source_package_sha256": "c541fde15515fe17997fbfa6c28517485faa8fec0ff0b06980c426a1bdf05cdf",
+  "binary_package_sha256": "437a4ce7a51c95bc3675fe20d976be0fdbaea5f7ed8fa9fd92af48b24a77dda5"
 }
