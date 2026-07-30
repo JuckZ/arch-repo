@@ -1,7 +1,7 @@
 # Maintainer: JuckZ <juckz@foxmail.com>
 
 pkgname=codex-desktop-bin
-pkgver=26.721.81911.d7b3722e4.gb77f3454
+pkgver=26.727.40816.dfb93a239.gefe49176
 pkgrel=1
 pkgdesc="Unofficial prebuilt Codex Desktop for Linux"
 arch=('x86_64')
@@ -48,7 +48,7 @@ options=(!debug !strip)
 
 _repository_tag="repository-${CARCH}"
 _source_package="codex-desktop-${pkgver}-${pkgrel}-${CARCH}.pkg.tar.zst"
-_source_sha256='768a340a53cc156ba14a10008803f1a83bbb3354f25ad952939176a0b308dc02'
+_source_sha256='1aa54040af0bcfa30983cf7200264fede2e98787bd5102d39f1604f9dc60902d'
 
 if [[ "${CODEX_DESKTOP_PACKAGE_LOCAL:-0}" == '1' ]]; then
   source=("${_source_package}")
