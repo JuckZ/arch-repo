@@ -1,7 +1,7 @@
 # Maintainer: JuckZ <juckz@foxmail.com>
 
 pkgname=codex-desktop
-pkgver=26.727.40816.dfb93a239.gefe49176
+pkgver=26.727.51351.d45ec006a.gc4581195
 pkgrel=1
 pkgdesc="Unofficial Codex Desktop for Linux, built from the official macOS DMG"
 arch=('x86_64')
@@ -53,8 +53,8 @@ optdepends=(
 conflicts=('codex-desktop-bin' 'openai-codex-desktop')
 options=(!debug !strip)
 
-_wrapper_commit='efe491761d9075341fe79f564631a6dd9aafd291'
-_dmg_sha256='fb93a239c811c7639cf45a90ff36c262fa0290640140cd12da3fdc60b62255ae'
+_wrapper_commit='c4581195c2bfec50a271f59146f680b9a0ebdd03'
+_dmg_sha256='45ec006a0f3f0fa004b6fd4d6d5529979a05361f995ca2c51de3a3b04deee123'
 
 if [[ "${CODEX_DMG_LOCAL:-0}" == '1' ]]; then
   source=(
