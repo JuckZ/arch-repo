@@ -1,6 +1,6 @@
 pkgbase = codex-desktop
 	pkgdesc = Unofficial Codex Desktop for Linux, built from the official macOS DMG
-	pkgver = 26.730.61639.d33ad4701.g3c0427e5
+	pkgver = 26.803.41515.df8a5a74a.gd48fa56a
 	pkgrel = 1
 	url = https://github.com/JuckZ/arch-repo
 	install = codex-desktop.install
@@ -47,9 +47,9 @@ pkgbase = codex-desktop
 	conflicts = openai-codex-desktop
 	options = !debug
 	options = !strip
-	source = codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=3c0427e5231d0a6ba0efe974ce05014d6ba4a6d2
+	source = codex-desktop-linux::git+https://github.com/ilysenko/codex-desktop-linux.git#commit=d48fa56a712a9a2635e984c6f384b01a498a4d31
 	source = Codex.dmg::https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg
 	sha256sums = SKIP
-	sha256sums = 33ad4701a1f723733313af05eb2816392b68b367eba0921dbe078d2d579719b5
+	sha256sums = f8a5a74acb38aab4a59ac0ad7fef3bb4bb4f280a7ed25f3cb7ef6145df5e8747
 
 pkgname = codex-desktop

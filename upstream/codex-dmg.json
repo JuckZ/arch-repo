@@ -2,16 +2,16 @@
   "schema_version": 1,
   "url": "https://persistent.oaistatic.com/codex-app-prod/ChatGPT.dmg",
   "remote": {
-    "etag": "0x8DEF2A335160056",
-    "last_modified": "Wed, 05 Aug 2026 03:39:51 GMT",
-    "content_length": 618651816
+    "etag": "0x8DEF4229FE5F388",
+    "last_modified": "Fri, 07 Aug 2026 01:24:28 GMT",
+    "content_length": 600747074
   },
-  "sha256": "33ad4701a1f723733313af05eb2816392b68b367eba0921dbe078d2d579719b5",
-  "app_version": "26.730.61639",
-  "wrapper_commit": "3c0427e5231d0a6ba0efe974ce05014d6ba4a6d2",
-  "package_version": "26.730.61639.d33ad4701.g3c0427e5",
-  "published_at": "2026-08-05T23:17:43.013991Z",
-  "checked_at": "2026-08-05T23:09:12.675880Z",
-  "source_package_sha256": "9b009bb6b2f9a1e4922b0548332ed2136fcb67bb08084d5789930b4d9da28711",
-  "binary_package_sha256": "b152d229c16ec9e358d0f35b4e1bf62afe5acf56adba164d25020fa15c13a043"
+  "sha256": "f8a5a74acb38aab4a59ac0ad7fef3bb4bb4f280a7ed25f3cb7ef6145df5e8747",
+  "app_version": "26.803.41515",
+  "wrapper_commit": "d48fa56a712a9a2635e984c6f384b01a498a4d31",
+  "package_version": "26.803.41515.df8a5a74a.gd48fa56a",
+  "published_at": "2026-08-07T22:56:01.439556Z",
+  "checked_at": "2026-08-07T22:46:05.945020Z",
+  "source_package_sha256": "864d228c5ee026d35a7b2d562b88b137c88b1ce8d01579104ab81303fd901058",
+  "binary_package_sha256": "47fd30407ab3f7ac4a73b1a6944b2076017854896e5dd9939174025d9c9faa68"
 }
