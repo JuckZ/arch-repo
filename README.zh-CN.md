@@ -2,25 +2,23 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-这是一个适用于 Arch Linux 及其兼容发行版的签名 pacman 软件仓库，同时提供可审查的 PKGBUILD。
+适用于 Arch Linux、CachyOS 及兼容发行版的签名 pacman 软件仓库。
 
-## 推荐项目
+## Codex Desktop 软件包来源
 
-本仓库参考并基于
-[ilysenko/codex-desktop-linux](https://github.com/ilysenko/codex-desktop-linux)，推荐大多数用户优先使用该项目。
+签名的 `codex-desktop` 软件包从
+[`JuckZ/codex-desktop-bin`](https://github.com/JuckZ/codex-desktop-bin)
+的预构建 Release 自动同步。该项目验证 OpenAI 官方签名 Linux 软件包，并使用
+[`ilysenko/codex-desktop-linux`](https://github.com/ilysenko/codex-desktop-linux)
+完成 Linux 打包。
 
-本仓库主要用于个人使用，仅针对 Arch Linux 的软件包构建和分发流程进行了适配。如果你需要通用的 Linux 转换流程、更广泛的发行版支持，或者希望了解上游实现细节，建议直接从该参考项目开始。
+本仓库用户不需要在本地构建 OpenAI 应用。同步流程会验证来源 Release
+元数据和 GitHub 资产摘要，核对软件包名称、版本、架构与 SHA-256，然后使用
+JuckZ 仓库密钥签名并写入 `juckz.db`。
 
-当前包含：
-
-- `codex-desktop`：从官方 Codex DMG 和固定版本的 `codex-desktop-linux` 在本地构建。
-- `codex-desktop-bin`：快速安装对应的预构建软件包。
-
-两个软件包互相冲突，不能同时安装。
-
-上游可选更新管理器的 Rust 原生依赖目前无法在 Arch 构建容器中稳定链接，因此默认关闭。桌面应用仍可正常打包，Codex CLI 的更新也不依赖该组件。
-
-部分上游版本还可能出现 Linux Computer Use 后端的原生链接错误。桌面主体和常规 Codex/CLI 集成仍会打包，但 Computer Use 功能可能暂时不可用。
+当前软件包身份是 `codex-desktop`。它会替换旧的 `codex-desktop-bin`，但不会
+删除 `~/.codex` 中的用户状态。旧的 `codex-desktop-bin` 资产仅保留用于迁移
+和历史恢复。
 
 ## 启用软件仓库
 
@@ -47,79 +45,58 @@ SigLevel = Required DatabaseOptional
 Server = https://github.com/JuckZ/arch-repo/releases/download/repository-$arch
 ```
 
-使用 pacman 安装：
+通过完整系统升级事务安装或更新：
 
 ```bash
-sudo pacman -Syu juckz/codex-desktop-bin
+sudo pacman -Syu juckz/codex-desktop
 ```
 
-使用 paru 安装：
-
-```bash
-paru -S juckz/codex-desktop-bin
-```
-
-使用 yay 安装：
-
-```bash
-yay -S juckz/codex-desktop-bin
-```
+不要使用缺少 `-u` 的 `pacman -Sy`，因为 Arch Linux 不支持局部升级。配置
+仓库后，日常执行 `sudo pacman -Syu` 就会随系统一起更新 Codex Desktop。
 
 ## 直接安装软件包
 
-滚动 Release `repository-x86_64` 提供固定的最新版下载地址。先导入上面的签名公钥，然后执行：
+滚动 Release `repository-x86_64` 同时提供固定的最新版文件名。先导入上述
+签名公钥，然后执行：
 
 ```bash
 sudo pacman -U \
-  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-bin-x86_64.pkg.tar.zst'
+  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-x86_64.pkg.tar.zst'
 ```
 
-本地构建版本对应的固定文件名为：
-
-```text
-codex-desktop-x86_64.pkg.tar.zst
-```
-
-如果处于代理网络中，pacman 报告 `TLS connect error`，但普通 curl 可以下载，可在 `/etc/pacman.conf` 的 `[options]` 下添加：
+如果处于代理网络中，pacman 报告 `TLS connect error`，但普通 curl 可以下载，
+可在 `/etc/pacman.conf` 的 `[options]` 下添加：
 
 ```ini
 XferCommand = /usr/bin/curl -L --retry 5 --retry-all-errors -C - -f -o %o %u
 ```
 
-## 从 PKGBUILD 构建
+## 从源码构建
+
+如需审计或开发，仍可在本地从源码构建：
 
 ```bash
-git clone https://github.com/JuckZ/arch-repo.git
-cd arch-repo/packages/codex-desktop
-makepkg -si
+git clone https://github.com/JuckZ/codex-desktop-bin.git
+cd codex-desktop-bin
+./scripts/build-latest.sh
+./scripts/install-local.sh
 ```
 
-使用预构建配方：
-
-```bash
-cd arch-repo/packages/codex-desktop-bin
-makepkg -si
-```
-
-不要使用 `sudo makepkg`。
+不要使用 `sudo` 运行 `makepkg` 或构建脚本。
 
 ## 维护与发布
 
-### 每日自动更新
+`Sync prebuilt Codex Desktop` 工作流每六小时检查一次，时间比来源仓库的
+定时构建晚 30 分钟。它会：
 
-`Check and publish new Codex DMG` 工作流每天在北京时间 **06:00**（UTC 22:00）运行，自动完成：
+1. 解析最新的 `JuckZ/codex-desktop-bin` Release；
+2. 验证来源元数据与 GitHub SHA-256 资产摘要；
+3. 只下载滚动仓库中尚不存在的软件包；
+4. 核对 pacman 包名、版本、架构和 SHA-256；
+5. 使用现有 JuckZ 密钥签名软件包和仓库数据库；
+6. 更新 `juckz.db` 与固定下载文件名。
 
-1. 检查上游 DMG 的 ETag、修改时间和文件大小；
-2. 仅在远程指纹发生变化时下载 DMG；
-3. 校验完整 SHA256，并从 `Info.plist` 读取应用版本；
-4. 构建并签名 `codex-desktop` 和 `codex-desktop-bin`；
-5. 更新 `juckz` pacman 数据库和固定下载地址；
-6. 将新的固定版本、校验值和 DMG 状态提交回 `main`。
-
-也可以手动运行该工作流。只有需要对相同 DMG 强制重新构建时才启用 `force`。
-
-### 手动发布
-
-`Build and publish package` 工作流默认启用发布。它以普通用户构建软件包，完成签名，更新 `juckz` 数据库，并发布到固定的 `repository-x86_64` Release。
+也可以手动运行该工作流。只有确实需要重新签名并发布同一来源资产时才启用
+`force`。`Publish existing artifact` 仅保留用于恢复流程。
 
 重新分发第三方程序内容前，请阅读 [DISCLAIMER.md](DISCLAIMER.md)。

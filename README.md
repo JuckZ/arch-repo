@@ -2,38 +2,25 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-Signed custom pacman repository and inspectable PKGBUILD collection for Arch
-Linux and compatible distributions.
+Signed custom pacman repository for Arch Linux, CachyOS, and compatible
+distributions.
 
-## Recommended project
+## Codex Desktop package source
 
-This repository is based on and refers to
-[ilysenko/codex-desktop-linux](https://github.com/ilysenko/codex-desktop-linux).
-We recommend that most users use that project directly.
+The signed `codex-desktop` package is synchronized from prebuilt releases of
+[`JuckZ/codex-desktop-bin`](https://github.com/JuckZ/codex-desktop-bin). That
+project verifies OpenAI's signed official Linux package and uses
+[`ilysenko/codex-desktop-linux`](https://github.com/ilysenko/codex-desktop-linux)
+as its packaging implementation.
 
-This repository is maintained primarily for personal use and only adapts the
-packaging and distribution workflow for Arch Linux. The referenced project is
-the more appropriate starting point if you want the general Linux conversion
-workflow, broader distribution support, or upstream implementation details.
+Users of this repository do not build the OpenAI application locally. The
+synchronization workflow verifies the source Release metadata and GitHub asset
+digest, checks the package name, version, architecture, and SHA-256, signs the
+package with the JuckZ repository key, and publishes it in `juckz.db`.
 
-Initial packages:
-
-- `codex-desktop`: builds locally from the official Codex DMG and a pinned
-  `codex-desktop-linux` commit.
-- `codex-desktop-bin`: installs the corresponding prebuilt package quickly.
-
-The packages conflict and cannot be installed together.
-
-The optional upstream update manager is disabled by default because its current
-Rust native dependencies do not link reliably in the Arch build container. The
-desktop application remains installable and Codex CLI updates are independent
-of this optional component. Maintainers can re-enable it from the workflow
-input after upstream compatibility is restored.
-
-Some upstream revisions may report a native linker failure for the Linux
-Computer Use backend in the Arch container. The desktop application and normal
-Codex/CLI integration are still packaged, but Computer Use can be unavailable
-until the upstream native-linking issue is resolved.
+The current package identity is `codex-desktop`. It replaces the legacy
+`codex-desktop-bin` package without deleting user state under `~/.codex`. Old
+`codex-desktop-bin` assets remain only for migration and historical recovery.
 
 ## Enable the repository
 
@@ -60,36 +47,25 @@ SigLevel = Required DatabaseOptional
 Server = https://github.com/JuckZ/arch-repo/releases/download/repository-$arch
 ```
 
-Install with pacman:
+Install or update safely with a complete system upgrade transaction:
 
 ```bash
-sudo pacman -Syu juckz/codex-desktop-bin
+sudo pacman -Syu juckz/codex-desktop
 ```
 
-Install with paru:
-
-```bash
-paru -S juckz/codex-desktop-bin
-```
-
-Install with yay:
-
-```bash
-yay -S juckz/codex-desktop-bin
-```
+Do not use `pacman -Sy` without `-u`; Arch Linux does not support partial
+upgrades. Once the repository is configured, ordinary `sudo pacman -Syu`
+updates Codex Desktop with the rest of the system.
 
 ## Direct package installation
 
-The rolling `repository-x86_64` Release provides stable direct-download names.
-Import the signing key first, then install the latest prebuilt package:
+The rolling `repository-x86_64` Release also provides a stable direct-download
+name. Import the signing key first, then install:
 
 ```bash
 sudo pacman -U \
-  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-bin-x86_64.pkg.tar.zst'
+  'https://github.com/JuckZ/arch-repo/releases/download/repository-x86_64/codex-desktop-x86_64.pkg.tar.zst'
 ```
-
-The locally-built channel is also available as a versioned asset named
-`codex-desktop-<version>-x86_64.pkg.tar.zst`.
 
 If pacman reports `TLS connect error` on a proxied network while ordinary curl
 downloads work, add this under `[options]` in `/etc/pacman.conf`:
@@ -98,45 +74,33 @@ downloads work, add this under `[options]` in `/etc/pacman.conf`:
 XferCommand = /usr/bin/curl -L --retry 5 --retry-all-errors -C - -f -o %o %u
 ```
 
-## Build from a PKGBUILD
+## Build from source
+
+Local source building remains available for auditing and development:
 
 ```bash
-git clone https://github.com/JuckZ/arch-repo.git
-cd arch-repo/packages/codex-desktop
-makepkg -si
+git clone https://github.com/JuckZ/codex-desktop-bin.git
+cd codex-desktop-bin
+./scripts/build-latest.sh
+./scripts/install-local.sh
 ```
 
-For the prebuilt recipe:
-
-```bash
-cd arch-repo/packages/codex-desktop-bin
-makepkg -si
-```
-
-Never run `makepkg` with `sudo`.
+Never run `makepkg` or the build script with `sudo`.
 
 ## Maintainer publishing
 
-### Daily automatic update
+The `Sync prebuilt Codex Desktop` workflow checks every six hours, 30 minutes
+after the source repository's scheduled build. It:
 
-The `Check and publish new Codex DMG` workflow runs every day at **06:00
-Asia/Shanghai** (`22:00 UTC`). It:
+1. resolves the latest `JuckZ/codex-desktop-bin` Release;
+2. validates its provenance metadata and GitHub SHA-256 asset digest;
+3. downloads only a package not already present in the rolling repository;
+4. verifies the pacman name, version, architecture, and package SHA-256;
+5. signs the package and repository database with the existing JuckZ key;
+6. refreshes `juckz.db` and the stable direct-download alias.
 
-1. checks the upstream DMG ETag, modification time, and content length;
-2. downloads the DMG only when its remote fingerprint changes;
-3. verifies the complete SHA256 and reads the application version from
-   `Info.plist`;
-4. builds and signs `codex-desktop` and `codex-desktop-bin`;
-5. refreshes the `juckz` pacman database and stable direct-download aliases;
-6. commits the new pinned versions and checksums back to `main`.
-
-The workflow can also be started manually. Enable `force` only when the same
-DMG payload needs to be rebuilt deliberately.
-
-### Manual publishing
-
-The `Build and publish package` workflow has publishing enabled by default.
-It builds as an unprivileged user, signs the package, updates the `juckz`
-database, and publishes everything to the fixed `repository-x86_64` Release.
+The workflow can also be started manually. Enable `force` only to sign and
+republish an identical source asset deliberately. `Publish existing artifact`
+remains available for recovery workflows.
 
 See [DISCLAIMER.md](DISCLAIMER.md) before redistributing third-party payloads.

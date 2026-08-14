@@ -7,3 +7,4 @@ packages/*/codex-desktop-linux/
 pkg/
 src/
 repo-work/
+dist/
