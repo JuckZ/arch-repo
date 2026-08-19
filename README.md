@@ -103,4 +103,10 @@ The workflow can also be started manually. Enable `force` only to sign and
 republish an identical source asset deliberately. `Publish existing artifact`
 remains available for recovery workflows.
 
+## Acknowledgements
+
+Thanks to the [Linux.do](https://linux.do/) community for providing a platform
+and welcoming environment for discussion. Its discussions and sharing have
+been a great help to this project.
+
 See [DISCLAIMER.md](DISCLAIMER.md) before redistributing third-party payloads.

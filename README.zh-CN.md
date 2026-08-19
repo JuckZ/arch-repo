@@ -99,4 +99,8 @@ cd codex-desktop-bin
 也可以手动运行该工作流。只有确实需要重新签名并发布同一来源资产时才启用
 `force`。`Publish existing artifact` 仅保留用于恢复流程。
 
+## 致谢
+
+感谢 [Linux.do](https://linux.do/) 社区提供的平台与交流环境，讨论与分享对本项目帮助很大。
+
 重新分发第三方程序内容前，请阅读 [DISCLAIMER.md](DISCLAIMER.md)。
